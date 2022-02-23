@@ -11,6 +11,7 @@ const cuteAlert = ({
   playSound = null,
   cancelText = 'Cancel',
   closeStyle,
+  inputtype= 'text',
 }) => {
   return new Promise(resolve => {
     const existingAlert = document.querySelector('.alert-wrapper');
@@ -62,11 +63,11 @@ const cuteAlert = ({
               ? 'alert-close-circle'
               : 'alert-close-default'
           }">X</span>
-          ${img !== '' ? '<img class="alert-img" src="' + src + '/' + img + '" />' : ''}
+          <img class="alert-img" src="${chrome.runtime.getURL('/img/' + type + '.svg')}" />
         </div>
         <div class="alert-body">
           <span class="alert-title">${title}</span>
-          <span class="alert-message">${message}</span>
+          ${type === 'question' ? '<input class="alert-text-box" type="' + inputtype + '" placeholder="' + message + '"></input>' : '<span class="alert-message">' + message + '</span>'}
           ${btnTemplate}
         </div>
       </div>
@@ -83,9 +84,16 @@ const cuteAlert = ({
       const confirmButton = document.querySelector('.confirm-button');
       const cancelButton = document.querySelector('.cancel-button');
 
+      $(document).keypress(function(e){
+        if (e.which == 13){
+          confirmButton.click();
+        }
+      });
+
       confirmButton.addEventListener('click', () => {
+        val = document.querySelector("html > div > div > div.alert-body > input").value;
         alertWrapper.remove();
-        resolve('confirm');
+        resolve(val);
       });
 
       cancelButton.addEventListener('click', () => {
@@ -106,18 +114,13 @@ const cuteAlert = ({
       resolve('close');
     });
 
-/*     alertWrapper.addEventListener('click', () => {
-      alertWrapper.remove();
-      resolve();
-    }); */
-
     alertFrame.addEventListener('click', e => {
       e.stopPropagation();
     });
   });
 };
 
-const cuteToast = ({ type, message, timer = 5000,  vibrate = [], playSound = null }) => {
+const cuteToast = ({ type, message, timer = 5000,  vibrate = [], playSound = null, title = '' }) => {
   return new Promise(resolve => {
     const body = document.querySelector('body');
 
@@ -147,17 +150,12 @@ const cuteToast = ({ type, message, timer = 5000,  vibrate = [], playSound = nul
     <div class="toast-content ${type}-bg" id="${toastId}-toast-content">
       <div>
         <div class="toast-frame">
-          <div class="toast-body">
-            
-            ${img !== '' ? '<img class="toast-body-img" src="' + src + '/' + img + '" />' : ''}
-            <div class="toast-body-content">
-              <span class="toast-title">${title}</span>
-              <span class="toast-message">${message}</span>
-            </div>
-            <div class="toast-close" id="${toastId}-toast-close">X</div>
-          </div>
+            <img class="toast-img" src="${chrome.runtime.getURL('/img/' + type + '.svg')}" />
+            ${title !== '<span class="toast-title">' + title + '</span>' ? '' : ''}
+            <span class="toast-message">${message}</span>
+          <div class="toast-close" id="${toastId}-toast-close">X</div>
         </div>
-        ${img !== '' ? '<div class="toast-timer ' + type + '-timer"  style="animation: timer' + timer + 'ms linear;>' : ''}
+        <div class="toast-timer ${type}-timer" style="animation: timer ${timer}ms linear;"/>
       </div>
     </div>
     `;
